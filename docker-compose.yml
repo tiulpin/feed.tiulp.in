@@ -1,0 +1,13 @@
+services:
+  glance:
+    build: .
+    container_name: glance
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config:/app/config
+      - ./assets:/app/assets
+    env_file: .env
+    environment:
+      - TZ=Europe/Amsterdam

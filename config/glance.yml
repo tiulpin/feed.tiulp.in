@@ -1,0 +1,27 @@
+server:
+  port: 8081
+  assets-path: /app/assets
+
+theme:
+  background-color: 0 0 7
+  primary-color: 0 53 58
+  positive-color: 131 26 54
+  negative-color: 355 64 65
+  contrast-multiplier: 1.2
+  custom-css-file: /assets/user.css
+
+  presets:
+    default-light:
+      light: true
+      background-color: 30 25 96
+      primary-color: 0 65 45
+      positive-color: 131 40 38
+      negative-color: 355 70 45
+      contrast-multiplier: 1.1
+
+branding:
+  custom-footer: '<span style="display:inline;white-space:nowrap;"><a href="https://tiulp.in/">About me</a>&nbsp;·&nbsp;<a href="https://feed.tiulp.in/">Feed</a>&nbsp;·&nbsp;<a href="https://v.tiulp.in/">Notes</a>&nbsp;·&nbsp;<a href="https://v.tiulp.in/cv.pdf">CV</a>&nbsp;·&nbsp;<a href="https://linkedin.com/in/tiulpin">LinkedIn</a>&nbsp;·&nbsp;<a href="https://github.com/tiulpin">GitHub</a></span>'
+
+pages:
+  - $include: home.yml
+  - $include: transit.yml

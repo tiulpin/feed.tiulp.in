@@ -1,0 +1,182 @@
+- name: Transit
+  columns:
+    - size: full
+      widgets:
+        - type: custom-api
+          title: ☔ Rain Alert
+          cache: 5m
+          url: https://api.open-meteo.com/v1/forecast?latitude=52.36&longitude=4.87&current=precipitation,weather_code&minutely_15=precipitation&timezone=Europe/Amsterdam&forecast_minutely_15=8
+          template: |
+            {{ $now := .JSON.Float "current.precipitation" }}
+            {{ $m1 := .JSON.Float "minutely_15.precipitation.1" }}
+            {{ $m2 := .JSON.Float "minutely_15.precipitation.2" }}
+            {{ $m3 := .JSON.Float "minutely_15.precipitation.3" }}
+            {{ $m4 := .JSON.Float "minutely_15.precipitation.4" }}
+            <div style="display:flex;align-items:center;gap:1rem;padding:1rem 1.5rem;background:rgba(255,255,255,0.03);border-radius:12px;margin-bottom:1rem;font-size:1.4rem;font-weight:600;">
+              {{ if gt $now 0.0 }}
+                <span style="font-size:2rem;">🌧️</span>
+                <span>Raining now ({{ printf "%.1f" $now }}mm)</span>
+              {{ else if gt $m1 0.0 }}
+                <span style="font-size:2rem;">🌧️</span>
+                <span style="color:#CD5C5C;">Rain in ~15 min</span>
+              {{ else if gt $m2 0.0 }}
+                <span style="font-size:2rem;">🌦️</span>
+                <span style="color:#E8A838;">Rain in ~30 min</span>
+              {{ else if gt $m3 0.0 }}
+                <span style="font-size:2rem;">🌦️</span>
+                <span>Rain in ~45 min</span>
+              {{ else if gt $m4 0.0 }}
+                <span style="font-size:2rem;">🌦️</span>
+                <span>Rain in ~1 hour</span>
+              {{ else }}
+                <span style="font-size:2rem;">✓</span>
+                <span style="color:#6AAB73;">No rain for 2 hours</span>
+              {{ end }}
+            </div>
+
+        - type: weather
+          location: Amsterdam
+          units: metric
+          hour-format: 24h
+
+        - type: custom-api
+          title: 🚏 Hoofddorpplein
+          cache: 1m
+          url: https://v0.ovapi.nl/tpc/30007046,30007048,30007049,30004104,30004105
+          allow-insecure: true
+          template: |
+            <style>
+              .route-row {
+                display: flex;
+                align-items: center;
+                gap: 1.5rem;
+                padding: 1.2rem 1.5rem;
+                background: rgba(255,255,255,0.03);
+                border-radius: 16px;
+                margin-bottom: 1rem;
+                border-left: 6px solid;
+              }
+              .route-row.tram { border-left-color: #CD5C5C; }
+              .route-row.bus { border-left-color: #4A90D9; }
+              .route-badge {
+                min-width: 4.5rem;
+                height: 4.5rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 12px;
+                font-weight: 800;
+                font-size: 2.2rem;
+                flex-shrink: 0;
+              }
+              .route-badge.tram { background: #CD5C5C; color: #fff; }
+              .route-badge.bus { background: #4A90D9; color: #fff; }
+              .route-dest {
+                font-size: 1.6rem;
+                font-weight: 600;
+                min-width: 180px;
+                flex-shrink: 0;
+              }
+              .departures {
+                display: flex;
+                gap: 0.8rem;
+                flex-wrap: wrap;
+                flex: 1;
+                justify-content: flex-end;
+              }
+              .dep-time {
+                background: rgba(255,255,255,0.1);
+                padding: 0.7rem 1.2rem;
+                border-radius: 10px;
+                font-size: 1.8rem;
+                font-weight: 700;
+              }
+              .dep-time:first-child {
+                background: rgba(205,92,92,0.4);
+                color: #fff;
+              }
+            </style>
+
+            <div class="route-row tram">
+              <div class="route-badge tram">2</div>
+              <div class="route-dest">Centraal Station</div>
+              <div class="departures">
+              {{ $count := 0 }}
+              {{ range .JSON.Array "30007049.Passes.@values" | sortByString "ExpectedDepartureTime" "asc" }}
+                {{ if and (eq (.String "LinePublicNumber") "2") (lt $count 5) }}
+                <span class="dep-time" {{ .String "ExpectedDepartureTime" | parseLocalTime "2006-01-02T15:04:05" | toRelativeTime }}></span>
+                {{ $count = add $count 1 }}
+                {{ end }}
+              {{ end }}
+              </div>
+            </div>
+
+            <div class="route-row tram">
+              <div class="route-badge tram">2</div>
+              <div class="route-dest">Nieuw Sloten</div>
+              <div class="departures">
+              {{ $count := 0 }}
+              {{ range .JSON.Array "30007048.Passes.@values" | sortByString "ExpectedDepartureTime" "asc" }}
+                {{ if lt $count 5 }}
+                <span class="dep-time" {{ .String "ExpectedDepartureTime" | parseLocalTime "2006-01-02T15:04:05" | toRelativeTime }}></span>
+                {{ $count = add $count 1 }}
+                {{ end }}
+              {{ end }}
+              </div>
+            </div>
+
+            <div class="route-row bus">
+              <div class="route-badge bus">15</div>
+              <div class="route-dest">Station Zuid</div>
+              <div class="departures">
+              {{ $count := 0 }}
+              {{ range .JSON.Array "30007049.Passes.@values" | sortByString "ExpectedDepartureTime" "asc" }}
+                {{ if and (eq (.String "LinePublicNumber") "15") (lt $count 5) }}
+                <span class="dep-time" {{ .String "ExpectedDepartureTime" | parseLocalTime "2006-01-02T15:04:05" | toRelativeTime }}></span>
+                {{ $count = add $count 1 }}
+                {{ end }}
+              {{ end }}
+              </div>
+            </div>
+
+            <div class="route-row bus">
+              <div class="route-badge bus">15</div>
+              <div class="route-dest">Sloterdijk</div>
+              <div class="departures">
+              {{ $count := 0 }}
+              {{ range .JSON.Array "30007046.Passes.@values" | sortByString "ExpectedDepartureTime" "asc" }}
+                {{ if lt $count 5 }}
+                <span class="dep-time" {{ .String "ExpectedDepartureTime" | parseLocalTime "2006-01-02T15:04:05" | toRelativeTime }}></span>
+                {{ $count = add $count 1 }}
+                {{ end }}
+              {{ end }}
+              </div>
+            </div>
+
+            <div class="route-row bus">
+              <div class="route-badge bus">62</div>
+              <div class="route-dest">Amstelstation</div>
+              <div class="departures">
+              {{ $count := 0 }}
+              {{ range .JSON.Array "30004104.Passes.@values" | sortByString "ExpectedDepartureTime" "asc" }}
+                {{ if lt $count 5 }}
+                <span class="dep-time" {{ .String "ExpectedDepartureTime" | parseLocalTime "2006-01-02T15:04:05" | toRelativeTime }}></span>
+                {{ $count = add $count 1 }}
+                {{ end }}
+              {{ end }}
+              </div>
+            </div>
+
+            <div class="route-row bus">
+              <div class="route-badge bus">62</div>
+              <div class="route-dest">Lelylaan</div>
+              <div class="departures">
+              {{ $count := 0 }}
+              {{ range .JSON.Array "30004105.Passes.@values" | sortByString "ExpectedDepartureTime" "asc" }}
+                {{ if lt $count 5 }}
+                <span class="dep-time" {{ .String "ExpectedDepartureTime" | parseLocalTime "2006-01-02T15:04:05" | toRelativeTime }}></span>
+                {{ $count = add $count 1 }}
+                {{ end }}
+              {{ end }}
+              </div>
+            </div>

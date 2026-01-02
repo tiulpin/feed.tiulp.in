@@ -1,0 +1,37 @@
+/* Light mode theme */
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-background: hsl(30 25% 96%) !important;
+    --color-background-highlight: hsl(30 20% 92%) !important;
+    --color-widget-background: hsl(30 30% 99%) !important;
+    --color-widget-background-highlight: hsl(30 25% 95%) !important;
+    --color-primary: hsl(0 65% 45%) !important;
+    --color-primary-highlight: hsl(0 70% 38%) !important;
+    --color-positive: hsl(131 40% 38%) !important;
+    --color-positive-highlight: hsl(131 45% 30%) !important;
+    --color-negative: hsl(355 70% 45%) !important;
+    --color-negative-highlight: hsl(355 75% 38%) !important;
+    --color-text-base: hsl(0 5% 25%) !important;
+    --color-text-highlight: hsl(0 8% 10%) !important;
+    --color-text-subdue: hsl(0 3% 45%) !important;
+    --color-separator: hsl(0 5% 80%) !important;
+    --color-border: hsl(0 5% 75%) !important;
+  }
+
+  body {
+    background-color: hsl(30 25% 96%) !important;
+    color: hsl(0 5% 25%) !important;
+  }
+}
+
+/* Subtle readability improvements */
+.list li {
+  line-height: 1.5;
+}
+
+/* Limit line length for better readability */
+.list li a {
+  max-width: 65ch;
+}
+
+

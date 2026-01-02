@@ -1,0 +1,296 @@
+- name: feed.tiulp.in
+  hide-desktop-navigation: true
+  width: wide
+  head-widgets:
+    - type: search
+      search-engine: duckduckgo
+      autofocus: true
+      bangs:
+        - title: Google
+          shortcut: "!g"
+          url: https://www.google.com/search?q={QUERY}
+        - title: YouTube
+          shortcut: "!yt"
+          url: https://www.youtube.com/results?search_query={QUERY}
+        - title: GitHub
+          shortcut: "!gh"
+          url: https://github.com/search?q={QUERY}
+        - title: Reddit
+          shortcut: "!r"
+          url: https://www.reddit.com/search?q={QUERY}
+
+    - type: group
+      widgets:
+        - type: markets
+          title: Markets
+          markets:
+            - symbol: NVDA
+              name: NVIDIA
+            - symbol: AAPL
+              name: Apple
+            - symbol: MSFT
+              name: Microsoft
+            - symbol: EUR=X
+              name: EUR/USD
+            - symbol: GC=F
+              name: Gold
+            - symbol: CL=F
+              name: Oil
+            - symbol: ^VIX
+              name: VIX
+            - symbol: ^TNX
+              name: 10Y Yield
+            - symbol: DX-Y.NYB
+              name: DXY
+            - symbol: VUAA.MI
+              name: VUAA
+            - symbol: VWCE.DE
+              name: VWCE
+            - symbol: UBER
+              name: Uber
+        - type: rss
+          title: Financial Times
+          style: horizontal-cards
+          thumbnail-height: 10
+          limit: 12
+          collapse-after: 12
+          cache: 15m
+          feeds:
+            - url: https://www.ft.com/rss/home
+              title: FT
+        - type: custom-api
+          title: Polymarket
+          cache: 10m
+          url: https://gamma-api.polymarket.com/events?closed=false&limit=48&order=volume&ascending=false
+          template: |
+            <ul class="list collapsible-container" data-collapse-after="24" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0;">
+            {{ range .JSON.Array "" }}
+              {{ $volTotal := .Float "volume" }}
+              {{ $vol24h := .Float "volume24hr" }}
+              <li>
+                <a href="https://polymarket.com/event/{{ .String "slug" }}" target="_blank" style="display:block;padding:8px 10px;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.04);border-right:1px solid rgba(255,255,255,0.04);">
+                  <div class="size-h5" style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;">{{ .String "title" }}</div>
+                  <div style="display:flex;gap:8px;align-items:center;">
+                    <span class="size-h6 color-subdue">${{ printf "%.0f" (div $volTotal 1000000.0) }}M vol</span>
+                    <span class="size-h6 color-positive">+${{ printf "%.0f" (div $vol24h 1000.0) }}K 24h</span>
+                  </div>
+                </a>
+              </li>
+            {{ end }}
+            </ul>
+
+  columns:
+    - size: small
+      widgets:
+        - type: clock
+          hour-format: 24h
+          timezones:
+            - timezone: Europe/Amsterdam
+              label: Amsterdam
+            - timezone: Europe/Kyiv
+              label: Kyiv
+            - timezone: America/New_York
+              label: New York
+            - timezone: America/Los_Angeles
+              label: SF
+            - timezone: Asia/Tokyo
+              label: Tokyo
+
+        - type: group
+          widgets:
+            - type: weather
+              location: Amsterdam
+              units: metric
+              hour-format: 24h
+            - type: custom-api
+              title: Air Quality
+              cache: 10m
+              url: https://api.waqi.info/feed/geo:52.374;4.889/?token=${WAQI_TOKEN}
+              template: |
+                {{ $aqi := printf "%03s" (.JSON.String "data.aqi") }}
+                {{ $aqiraw := .JSON.String "data.aqi" }}
+                {{ $humidity := .JSON.String "data.iaqi.h.v" }}
+                {{ $pm25 := .JSON.String "data.iaqi.pm25.v" }}
+                <div class="flex justify-between items-center">
+                  {{ if le $aqi "050" }}
+                    <span class="color-positive size-h4">●</span>
+                  {{ else if le $aqi "100" }}
+                    <span class="color-primary size-h4">●</span>
+                  {{ else }}
+                    <span class="color-negative size-h4">●</span>
+                  {{ end }}
+                  <span class="size-h3 color-highlight" style="margin-left: 8px;">AQI {{ $aqiraw }}</span>
+                  <span class="size-h5 color-subdue" style="margin-left: auto;">{{ $humidity }}% · PM2.5: {{ $pm25 }}</span>
+                </div>
+
+        - type: group
+          widgets:
+            - type: custom-api
+              title: GitHub Trending
+              cache: 1h
+              url: https://api.ossinsight.io/v1/trends/repos/?period=past_24_hours
+              template: |
+                <ul class="list list-gap-10 collapsible-container" data-collapse-after="5">
+                {{ range .JSON.Array "data.rows"}}
+                  <li>
+                    <a class="size-h4 color-primary-if-not-visited" href="https://github.com/{{ .String "repo_name" }}">{{ .String "repo_name" }}</a>
+                    <ul class="list-horizontal-text">
+                      <li class="color-highlight">{{.String "primary_language"}}</li>
+                      <li>{{ .Int "stars" }} ★</li>
+                    </ul>
+                  </li>
+                {{ end }}
+                </ul>
+            - type: releases
+              title: Releases
+              token: ${GITHUB_TOKEN}
+              cache: 1h
+              collapse-after: 8
+              repositories:
+                - glanceapp/glance
+                - jackyzha0/quartz
+                - JetBrains/qodana-cli
+                - astral-sh/uv
+                - oven-sh/bun
+                - neovim/neovim
+                - ollama/ollama
+                - openai/openai-python
+                - docker/compose
+                - hashicorp/terraform
+
+
+    - size: full
+      widgets:
+        - type: split-column
+          max-columns: 2
+          widgets:
+            - type: group
+              widgets:
+                - type: hacker-news
+                  limit: 14
+                  collapse-after: 7
+                  sort-by: best
+                  extra-sort-by: engagement
+                  comments-url-template: https://news.ycombinator.com/item?id={POST-ID}
+                - type: rss
+                  title: TLDR
+                  limit: 10
+                  collapse-after: 5
+                  cache: 30m
+                  feeds:
+                    - url: https://tldr.tech/api/rss/tech
+                      title: Tech
+
+                - type: rss
+                  title: Engineering Blogs
+                  limit: 8
+                  collapse-after: 4
+                  cache: 2h
+                  feeds:
+                    - url: https://netflixtechblog.medium.com/feed
+                      title: Netflix
+                    - url: https://blog.cloudflare.com/rss/
+                      title: Cloudflare
+                    - url: https://slack.engineering/feed/
+                      title: Slack
+                    - url: https://engineering.fb.com/feed/
+                      title: Meta
+                    - url: https://aws.amazon.com/blogs/architecture/feed/
+                      title: AWS
+                    - url: https://github.blog/engineering/feed/
+                      title: GitHub
+                    - url: https://dropbox.tech/feed
+                      title: Dropbox
+                - type: rss
+                  title: Simon W
+                  limit: 14
+                  collapse-after: 7
+                  cache: 1h
+                  feeds:
+                    - url: https://simonwillison.net/atom/everything/
+                      title: Simon Willison
+
+            - type: group
+              widgets:
+                - type: lobsters
+                  limit: 14
+                  collapse-after: 7
+                  sort-by: hot
+                - type: rss
+                  title: Bluesky Tech
+                  limit: 12
+                  collapse-after: 6
+                  cache: 30m
+                  feeds:
+                    - url: https://bsky.app/profile/simonwillison.net/rss
+                      title: Simon Willison
+                    - url: https://bsky.app/profile/karpathy.bsky.social/rss
+                      title: Andrej Karpathy
+                    - url: https://bsky.app/profile/kelseyhightower.com/rss
+                      title: Kelsey Hightower
+
+                - type: reddit
+                  subreddit: ExperiencedDevs
+                  limit: 8
+                  collapse-after: 5
+                  show-thumbnails: false
+                  request-url-template: ${REDDIT_PROXY_URL}?url={REQUEST-URL}
+                - type: reddit
+                  subreddit: cscareerquestionsEU
+                  limit: 8
+                  collapse-after: 5
+                  show-thumbnails: false
+                  request-url-template: ${REDDIT_PROXY_URL}?url={REQUEST-URL}
+
+        - type: videos
+          style: horizontal-cards
+          channels:
+            - UCUyeluBRhGPCW4rPe_UvBZQ # ThePrimeTime
+            - UCQ2yhU0H6DunD8YPYoV7A0w # NeetcodeIO
+            - UCogDkGI_WtSoVXtbUvRzzjg # Jordan Has No Life
+            - UC_mYaQAE6-71rjSN6CeCA-g # Neetcode
+            - UCPbwhExawYrn9xxI21TFfyw # The Pragmatic Engineer
+            - UC6t1O76G0jYXOAoYCm153dA # Lenny's Podcast
+            - UCsBjURrPoezykLs9EqgamOA # Fireship
+
+    - size: small
+      widgets:
+        - type: group
+          widgets:
+            - type: rss
+              title: 🇳🇱 Netherlands
+              limit: 10
+              collapse-after: 5
+              cache: 1h
+              feeds:
+                - url: https://www.dutchnews.nl/feed/
+                  title: DutchNews
+                - url: https://nltimes.nl/rssfeed2
+                  title: NL Times
+            - type: reddit
+              subreddit: Netherlands
+              limit: 5
+              collapse-after: 3
+              show-thumbnails: false
+              request-url-template: ${REDDIT_PROXY_URL}?url={REQUEST-URL}
+            - type: reddit
+              subreddit: Amsterdam
+              limit: 5
+              collapse-after: 3
+              show-thumbnails: false
+              request-url-template: ${REDDIT_PROXY_URL}?url={REQUEST-URL}
+
+        - type: group
+          widgets:
+            - type: reddit
+              subreddit: DutchFIRE
+              limit: 5
+              collapse-after: 3
+              show-thumbnails: false
+              request-url-template: ${REDDIT_PROXY_URL}?url={REQUEST-URL}
+            - type: reddit
+              subreddit: Bogleheads
+              limit: 5
+              collapse-after: 3
+              show-thumbnails: false
+              request-url-template: ${REDDIT_PROXY_URL}?url={REQUEST-URL}

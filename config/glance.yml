@@ -20,7 +20,7 @@ theme:
       contrast-multiplier: 1.1
 
 branding:
-  custom-footer: '<span style="display:inline;white-space:nowrap;"><a href="https://tiulp.in/">About me</a>&nbsp;·&nbsp;<a href="https://feed.tiulp.in/">Feed</a>&nbsp;·&nbsp;<a href="https://v.tiulp.in/">Notes</a>&nbsp;·&nbsp;<a href="https://v.tiulp.in/cv.pdf">CV</a>&nbsp;·&nbsp;<a href="https://linkedin.com/in/tiulpin">LinkedIn</a>&nbsp;·&nbsp;<a href="https://github.com/tiulpin">GitHub</a></span>'
+  custom-footer: '<span style="display:inline;white-space:nowrap;"><a href="https://tiulp.in/">About me</a>&nbsp;·&nbsp;<a href="https://feed.tiulp.in/">Feed</a>&nbsp;·&nbsp;<a href="https://log.tiulp.in/">Notes</a>&nbsp;·&nbsp;<a href="https://log.tiulp.in/cv.pdf">CV</a>&nbsp;·&nbsp;<a href="https://linkedin.com/in/tiulpin">LinkedIn</a>&nbsp;·&nbsp;<a href="https://github.com/tiulpin">GitHub</a></span>'
 
 pages:
   - $include: home.yml

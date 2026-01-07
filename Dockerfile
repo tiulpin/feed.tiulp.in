@@ -1,6 +1,8 @@
 # Build link-preview
 FROM golang:1.23-alpine AS builder
 WORKDIR /build
+COPY link-preview/go.mod link-preview/go.sum* ./
+RUN go mod download
 COPY link-preview/main.go .
 RUN go build -ldflags="-s -w" -o link-preview main.go
 
